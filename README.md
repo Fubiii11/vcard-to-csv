@@ -22,7 +22,7 @@ vCard File: The path to the vCard file you wish to convert.
 Output File: The desired name and location for the transformed CSV file.
 Example Function Call
 
-convert_vcard_to_csv('path/to/vcard.vcf', 'path/to/output.csv')
+```convert_vcard_to_csv('path/to/vcard.vcf', 'path/to/output.csv') ```
 
 <h2>Remapping Fields in Outlook</h2>
 After importing the CSV file into Outlook, you may need to remap individual input fields to ensure everything functions correctly. Keep in mind that the auto-complete feature in Outlook might not include all fields unless explicitly configured.
