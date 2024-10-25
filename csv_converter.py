@@ -1,7 +1,7 @@
 import csv
 
 def vcard_to_csv(vcard_file, csv_file):
-    # Prepare CSV data
+    # Prepare CSV headers and initialize data
     csv_data = []
     headers = [
         "Anrede", "Vorname", "Weitere Vornamen", "Nachname", "Suffix",
@@ -32,7 +32,7 @@ def vcard_to_csv(vcard_file, csv_file):
         "Webseite", "Weiteres Postfach"
     ]
     
-    csv_data.append(headers)
+    csv_data.append(headers)  # Add headers to CSV data
 
     # Read vCard file
     with open(vcard_file, 'r', encoding='utf-8') as vcard:
@@ -43,17 +43,18 @@ def vcard_to_csv(vcard_file, csv_file):
             if line.startswith("BEGIN:VCARD"):
                 contact = {header: "" for header in headers}  # Reset for new contact
             elif line.startswith("FN:"):
+                # Split full name into first and last names
                 full_name = line[3:].split()
                 contact["Vorname"] = full_name[0] if len(full_name) > 0 else ""
                 contact["Nachname"] = full_name[-1] if len(full_name) > 1 else ""
             elif line.startswith("ORG:"):
-                contact["Firma"] = line[4:]  # Company
+                contact["Firma"] = line[4:]  # Store company name
             elif line.startswith("EMAIL"):
-                # Extract the email and types from the line
+                # Process email and types from the line
                 email_parts = line.split(":")
                 email = email_parts[1] if len(email_parts) > 1 else ""
                 types = [part.replace("type=", "") for part in email_parts[0].split(";") if "type=" in part]
-                # Determine the field based on types (e.g., pref, HOME, WORK)
+                # Determine email field based on type
                 if "pref" in types or "WORK" in types:
                     if not contact["E-Mail-Adresse"]:
                         contact["E-Mail-Adresse"] = email
@@ -69,12 +70,12 @@ def vcard_to_csv(vcard_file, csv_file):
                         contact["E-Mail 3: Typ"] = "SMTP" 
 
             elif line.startswith("TEL"):
-                # Extract the phone number and types
+                # Process phone numbers and types
                 tel_parts = line.split(":")
                 phone_number = tel_parts[1].strip() if len(tel_parts) > 1 else ""
                 types = [part.replace("type=", "") for part in tel_parts[0].split(";") if "type=" in part]
                 
-                # Determine the field based on types (e.g., pref, CELL, WORK, FAX, VOICE)
+                # Determine phone field based on type
                 if "CELL" in types:
                     if not contact["Mobiltelefon"]:
                         contact["Mobiltelefon"] = phone_number
@@ -95,40 +96,33 @@ def vcard_to_csv(vcard_file, csv_file):
                 elif "FAX" in types and not contact["Weiteres Fax"]:
                     contact["Weiteres Fax"] = phone_number
                 else:
-                    # General fallback if no specific type is provided
+                    # Fallback for unspecified phone types
                     if not contact["Haupttelefon"]:
                         contact["Haupttelefon"] = phone_number
 
-
             elif line.startswith("ADR;type=WORK:") or line.startswith("ADR;type=WORK;type=pref:"):
-                # Extract and split the address components after ":"
+                # Extract business address components
                 address_parts = line.split(":", 1)[1].split(";")
-
-                # Map the address components for the business address
                 contact["Straße geschäftlich"] = address_parts[2] if len(address_parts) > 2 else ""
                 contact["Ort geschäftlich"] = address_parts[3] if len(address_parts) > 3 else ""
                 contact["Postleitzahl geschäftlich"] = address_parts[5] if len(address_parts) > 5 else ""
                 contact["Land/Region geschäftlich"] = address_parts[6] if len(address_parts) > 6 else ""
 
             elif line.startswith("ADR;type=HOME:") or line.startswith("ADR;type=HOME;type=pref:"):
-                # Extract and split the address components after ":"
+                # Extract home address components
                 address_parts = line.split(":", 1)[1].split(";")
-
-                # Map the address components for the home address
                 contact["Straße privat"] = address_parts[2] if len(address_parts) > 2 else ""
                 contact["Ort privat"] = address_parts[3] if len(address_parts) > 3 else ""
                 contact["Postleitzahl privat"] = address_parts[5] if len(address_parts) > 5 else ""
                 contact["Land/Region privat"] = address_parts[6] if len(address_parts) > 6 else ""
 
-            
-
             elif line.startswith("BDAY:"):
-                contact["Geburtstag"] = line[5:]  # Birthday
+                contact["Geburtstag"] = line[5:]  # Store birthday
 
             elif line.startswith("END:VCARD"):
                 csv_data.append(list(contact.values()))  # Add completed contact to CSV data
 
-    # Write to CSV
+    # Write CSV data to file
     with open(csv_file, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
         writer.writerows(csv_data)
@@ -136,4 +130,4 @@ def vcard_to_csv(vcard_file, csv_file):
     print(f"Converted {vcard_file} to {csv_file}")
 
 # Example usage
-vcard_to_csv('sets/pythondata.vcard', 'contacts.csv')
+vcard_to_csv('path/data.vcard', 'contacts.csv')
